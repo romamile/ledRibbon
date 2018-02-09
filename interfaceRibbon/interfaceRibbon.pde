@@ -34,24 +34,27 @@ void oscEvent(OscMessage theOscMessage) {
 
   if(theOscMessage.checkAddrPattern("/2/push1")==true) {
     if(theOscMessage.checkTypetag("f")) {
-      myPort.write('1');              
-      println("TEST: 1 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write(1);
+      println("TEST: 0 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write("\n");
       return;
     }
   }
   
   if(theOscMessage.checkAddrPattern("/2/push2")==true) {
     if(theOscMessage.checkTypetag("f")) {
-      myPort.write('2');              
-      println("TEST: 2 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write(2);
+      println("TEST: 1 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write("\n");
       return;
     }
   }
   
   if(theOscMessage.checkAddrPattern("/2/push3")==true) {
     if(theOscMessage.checkTypetag("f")) {
-      myPort.write('3');              
-      println("TEST: 3 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write(3);
+      println("TEST: 2 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write("\n");
       return;
     }
   }
@@ -59,11 +62,33 @@ void oscEvent(OscMessage theOscMessage) {
   
   if(theOscMessage.checkAddrPattern("/2/push4")==true) {
     if(theOscMessage.checkTypetag("f")) {
-      myPort.write('4');              
-      println("TEST: 4 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write(4);
+      println("TEST: 3 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write("\n");
       return;
     }
   }
   
+  
+  if(theOscMessage.checkAddrPattern("/2/push5")==true) {
+    if(theOscMessage.checkTypetag("f")) {
+      myPort.write(5);
+      println("TEST: 3 _ "  + theOscMessage.get(0).floatValue());
+      myPort.write("\n");
+      return;
+    }
+  }
+  
+  
+  if(theOscMessage.checkAddrPattern("/1/fader5")==true) {
+    if(theOscMessage.checkTypetag("f")) {
+      myPort.write(9);
+      int a = int(theOscMessage.get(0).floatValue()*100);
+      println("TEST: 5 _ "  + a);
+      myPort.write(  a );
+      myPort.write("\n");
+      return;
+    }
+  }
  
 }

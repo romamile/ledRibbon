@@ -16,15 +16,15 @@ uint8_t rr, gg, bb;
 
 uint16_t k, KK;
 
-uint16_t pos, diffPos;
-char val; // Data received from the serial port
+uint16_t pos, oldPos, diffPos;
+String inputString = "";
 
 uint8_t mode;
- 
+
 void setup() {
 
   Serial.begin(9600);
-  
+
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
   N = strip.numPixels();
@@ -37,31 +37,52 @@ void setup() {
   pos = 0;
   diffPos = 1;
 
-  mode = 0;
+  mode = 1;
+  inputString.reserve(200);
+  
 }
 
 void loop() {
 
-Serial.println("pojpoj");
+  inputString = "";
 
   while (Serial.available()) { // If data is available to read,
-   val = Serial.read(); // read it and store it in val
-   }
-   if (val == '1') { clean(); mode = 0; }
-   if (val == '2') { clean(); mode = 1; }
-   if (val == '3') { clean(); mode = 2; }
-   if (val == '4') { clean(); mode = 3; }
-   if (val == '5') { clean(); mode = 4; }
-   
+    char inChar = (char)Serial.read();
     
-  switch(mode) {
-  case 0: ambiance(); break;
-  case 1: strobSpread();    break;
-  case 2: strob();    break;  
-  case 3: vroum();    break;  
-  case 4: vroum();    break;
-  }
+    if(inChar != '\n') {
+      inputString += inChar;
+      
+    } else {
+
+      clean();
   
+      if(inputString.charAt(0) != 9)
+        mode = int(inputString.charAt(0));
+  
+      switch(inputString.charAt(0)) {
+      case 9:
+        if(inputString.length() > 1) {
+          oldPos = pos;
+          pos = int(inputString.charAt(1));
+        }
+        break;
+
+      }
+
+    }
+
+  
+  }
+
+
+  switch (mode) {
+    case 1: ambiance(); break;
+    case 2: strobSpread();    break;
+    case 3: strob();    break;
+    case 4: vroum();    break;
+    case 5: vroumContr();    break;
+  }
+
 }
 
 // My behaviors
@@ -74,17 +95,17 @@ void clean() {
 void ambiance() {
 
   k++;
-  
-  if(k > KK) {
+
+  if (k > KK) {
     rr = random(255);
     bb = random(255);
     k = 0;
   }
 
   for (uint16_t i = 0; i < N; i++) {
-    strip.setPixelColor(i, strip.Color(0.7*rr*(1-cos(k*2*M_PI/KK)), 0.5*bb*(1-cos(k*2*M_PI/KK)), 0) );
+    strip.setPixelColor(i, strip.Color(0.7 * rr * (1 - cos(k * 2 * M_PI / KK)), 0.5 * bb * (1 - cos(k * 2 * M_PI / KK)), 0) );
   }
-  
+
   strip.show();
   delay(5);
 
@@ -94,25 +115,25 @@ void ambiance() {
 void vroum() {
 
 
-  strip.setPixelColor((N+pos-1)%N, strip.Color(0, 0, 0));
-  strip.setPixelColor((N+pos  )%N, strip.Color(0, 0, 0));
-  strip.setPixelColor((N+pos+1)%N, strip.Color(0, 0, 0));
+  strip.setPixelColor((N + pos - 1) % N, strip.Color(0, 0, 0));
+  strip.setPixelColor((N + pos    ) % N, strip.Color(0, 0, 0));
+  strip.setPixelColor((N + pos + 1) % N, strip.Color(0, 0, 0));
 
   pos = (pos + diffPos);
 
-//  if(pos > N-3) {
-//    diffPos = -1;
-//  }
+  //  if(pos > N-3) {
+  //    diffPos = -1;
+  //  }
 
-  if(pos > N)
+  if (pos > N)
     pos = pos - N;
 
-  if(pos < 3)
+  if (pos < 3)
     diffPos = 1;
 
-  strip.setPixelColor((N+pos-1)%N, strip.Color(255, 0, 0));
-  strip.setPixelColor((N+pos  )%N, strip.Color(255, 0, 0));
-  strip.setPixelColor((N+pos+1)%N, strip.Color(255, 0, 0));
+  strip.setPixelColor((N + pos - 1) % N, strip.Color(255, 0, 0));
+  strip.setPixelColor((N + pos  ) % N, strip.Color(255, 0, 0));
+  strip.setPixelColor((N + pos + 1) % N, strip.Color(255, 0, 0));
 
 
   strip.show();
@@ -120,19 +141,37 @@ void vroum() {
 
 }
 
+
+
+void vroumContr() {
+
+  strip.setPixelColor((N + oldPos - 1) % N, strip.Color(0, 0, 0));
+  strip.setPixelColor((N + oldPos  ) % N, strip.Color(0, 0, 0));
+  strip.setPixelColor((N + oldPos + 1) % N, strip.Color(0, 0, 0));
+
+
+  strip.setPixelColor((N + pos - 1) % N, strip.Color(255, 0, 0));
+  strip.setPixelColor((N + pos  ) % N, strip.Color(255, 0, 0));
+  strip.setPixelColor((N + pos + 1) % N, strip.Color(255, 0, 0));
+
+  strip.show();
+  delay(5);
+
+}
+
 void strobAlt() {
 
-  for (uint16_t i = 0; i < N-1; i++) {
-    strip.setPixelColor(i%2  , strip.Color(255, 255, 255));
-    strip.setPixelColor(i%2+1, strip.Color(0, 0, 0));
+  for (uint16_t i = 0; i < N - 1; i++) {
+    strip.setPixelColor(i % 2  , strip.Color(255, 255, 255));
+    strip.setPixelColor(i % 2 + 1, strip.Color(0, 0, 0));
   }
   strip.show();
   delay(50);
 
 
   for (uint16_t i = 0; i < N; i++) {
-    strip.setPixelColor(i%2+1, strip.Color(255, 255, 255));
-    strip.setPixelColor(i%2  , strip.Color(0, 0, 0));
+    strip.setPixelColor(i % 2 + 1, strip.Color(255, 255, 255));
+    strip.setPixelColor(i % 2  , strip.Color(0, 0, 0));
   }
   strip.show();
   delay(50);
@@ -166,29 +205,29 @@ void strobSpread() {
   strip.setPixelColor(1, strip.Color(255, 255, 255));
   strip.setPixelColor(2, strip.Color(255, 255, 255));
 
-//  strip.setPixelColor(N/2 -1, strip.Color(255, 255, 255));
-//  strip.setPixelColor(N/2   , strip.Color(255, 255, 255));
-//  strip.setPixelColor(N/2 +1, strip.Color(255, 255, 255));
+  //  strip.setPixelColor(N/2 -1, strip.Color(255, 255, 255));
+  //  strip.setPixelColor(N/2   , strip.Color(255, 255, 255));
+  //  strip.setPixelColor(N/2 +1, strip.Color(255, 255, 255));
 
-  strip.setPixelColor(N-3, strip.Color(0,0,0));
-  strip.setPixelColor(N-2, strip.Color(0,0,0));
-  strip.setPixelColor(N-1, strip.Color(0,0,0));
+  strip.setPixelColor(N - 3, strip.Color(0, 0, 0));
+  strip.setPixelColor(N - 2, strip.Color(0, 0, 0));
+  strip.setPixelColor(N - 1, strip.Color(0, 0, 0));
 
   strip.show();
   delay(30);
 
 
-  strip.setPixelColor(0, strip.Color(0,0,0));
-  strip.setPixelColor(1, strip.Color(0,0,0));
-  strip.setPixelColor(2, strip.Color(0,0,0));
+  strip.setPixelColor(0, strip.Color(0, 0, 0));
+  strip.setPixelColor(1, strip.Color(0, 0, 0));
+  strip.setPixelColor(2, strip.Color(0, 0, 0));
 
-//  strip.setPixelColor(N/2 -1, strip.Color(0,0,0));
-//  strip.setPixelColor(N/2   , strip.Color(0,0,0));
-//  strip.setPixelColor(N/2 +1, strip.Color(0,0,0));
+  //  strip.setPixelColor(N/2 -1, strip.Color(0,0,0));
+  //  strip.setPixelColor(N/2   , strip.Color(0,0,0));
+  //  strip.setPixelColor(N/2 +1, strip.Color(0,0,0));
 
-  strip.setPixelColor(N-3, strip.Color(255, 255, 255));
-  strip.setPixelColor(N-2, strip.Color(255, 255, 255));
-  strip.setPixelColor(N-1, strip.Color(255, 255, 255));
+  strip.setPixelColor(N - 3, strip.Color(255, 255, 255));
+  strip.setPixelColor(N - 2, strip.Color(255, 255, 255));
+  strip.setPixelColor(N - 1, strip.Color(255, 255, 255));
   strip.show();
   delay(30);
 
@@ -206,7 +245,7 @@ void fromCenter() {
 
   k++;
 
-  if(k >= N/2) {
+  if (k >= N / 2) {
     rr = random(255);
     gg = random(255);
     bb = random(255);
@@ -216,8 +255,8 @@ void fromCenter() {
   }
 
   for (uint16_t i = 0; i < k; i++) {
-    strip.setPixelColor(N/2 + i, strip.Color(rr, gg, bb));
-    strip.setPixelColor(N/2 - i, strip.Color(rr, gg, bb));
+    strip.setPixelColor(N / 2 + i, strip.Color(rr, gg, bb));
+    strip.setPixelColor(N / 2 - i, strip.Color(rr, gg, bb));
   }
 
   strip.show();
@@ -235,8 +274,8 @@ void colorFill(uint32_t c, uint8_t wait) {
   for (uint16_t i = 0; i < strip.numPixels(); i++) {
     strip.setPixelColor(i, c);
   }
-    strip.show();
-    delay(wait);
+  strip.show();
+  delay(wait);
 }
 
 // Fill the dots one after the other with a color
@@ -323,3 +362,4 @@ uint32_t Wheel(byte WheelPos) {
   WheelPos -= 170;
   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
+
